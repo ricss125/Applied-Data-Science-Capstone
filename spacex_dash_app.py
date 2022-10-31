@@ -69,26 +69,26 @@ def build_graph(site_dropdown):
         return piechart
 # TASK 4:
 # Add a callback function for `site-dropdown` and `payload-slider` as inputs, `success-payload-scatter-chart` as output
-@app.callback(
-    Output(component_id='success-payload-scatter-chart', component_property='figure'),
-    [Input(component_id='site-dropdown', component_property='value'),
-    Input(component_id='payload-slider', component_property='value')])
-
-def update_graph(site_dropdown, payload_slider):
-    if site_dropdown == 'ALL':
-        filtered_data = spacex_df[(spacex_df['Payload Mass (kg)']>=payload_slider[0])
-        &(spacex_df['Payload Mass (kg)']<=payload_slider[1])]
-        scatterplot = px.scatter(data_frame=filtered_data, x="Payload Mass (kg)", y="class", 
-        color="Booster Version Category")
-        return scatterplot
+@app.callback(Output(component_id='success-payload-scatter-chart', component_property='figure'),
+              Input(component_id='site-dropdown', component_property='value'), 
+              Input(component_id="payload-slider", component_property="value"))
+def get_scatter_chart(entered_site, payload_range):
+    print('Params: {} {}'.format(entered_site, payload_range))
+    if entered_site == 'ALL':
+        filtered_df = spacex_df[(spacex_df['Payload Mass (kg)'] >= int(payload_range[0])) &
+                                (spacex_df['Payload Mass (kg)'] <= int(payload_range[1]))
+                               ]
+        fig = px.scatter(filtered_df, x='Payload Mass (kg)', y='class', color='Booster Version Category', title='All sites - payload mass between {:8,d}kg and {:8,d}kg'.format(int(payload_range[0]),int(payload_range[1])))
     else:
-        specific_df=spacex_df.loc[spacex_df['Launch Site'] == site_dropdown]
-        filtered_data = specific_df[(specific_df['Payload Mass (kg)']>=payload_slider[0])
-        &(spacex_df['Payload Mass (kg)']<=payload_slider[1])]
-        scatterplot = px.scatter(data_frame=filtered_data, x="Payload Mass (kg)", y="class", 
-        color="Booster Version Category")
-        return scatterplot
+        filtered_df = spacex_df[(spacex_df['Launch Site'] == entered_site) & 
+                                (spacex_df['Payload Mass (kg)'] >= int(payload_range[0])) &
+                                (spacex_df['Payload Mass (kg)'] <= int(payload_range[1]))
+                               ]
+        fig = px.scatter(filtered_df, x='Payload Mass (kg)', y='class', color='Booster Version Category', title='Site {} - payload mass between {:8,d}kg and {:8,d}kg'.format(entered_site,int(payload_range[0]),int(payload_range[1])))
+    
+    return fig
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(debug=True)
+
